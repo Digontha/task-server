@@ -4,7 +4,7 @@ var cors = require('cors')
 const port = process.env.PORT || 5000;
 require('dotenv').config()
 
-app.use(express());
+app.use(express.json());
 app.use(cors());
 
 app.get('/', (req, res) => {
@@ -27,11 +27,21 @@ const client = new MongoClient(uri, {
 async function run() {
   try {
     // Connect the client to the server	(optional starting in v4.7)
-    // await client.connect();
+    await client.connect();
     // Send a ping to confirm a successful connection
     // await client.db("admin").command({ ping: 1 });
-    
-    console.log("Pinged your deployment. You successfully connected to MongoDB!");
+    console.log("Pinged your deployment. You successfully connected to MongoDB!")
+
+    const todoCollection = client.db("taskDB").collection("todo");
+
+    app.post("/todo", async(req,res) => {
+      const data = req.body
+      const result= await todoCollection.insertOne(data);
+      res.send(result);
+    })
+
+
+
   } finally {
     // Ensures that the client will close when you finish/error
     // await client.close();
