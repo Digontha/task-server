@@ -33,12 +33,46 @@ async function run() {
     console.log("Pinged your deployment. You successfully connected to MongoDB!")
 
     const todoCollection = client.db("taskDB").collection("todo");
+    const ongoingCollection = client.db("taskDB").collection("ongoing");
+    const completedCollection = client.db("taskDB").collection("completed");
+// TODO SECTION
 
     app.post("/todo", async(req,res) => {
       const data = req.body
       const result= await todoCollection.insertOne(data);
       res.send(result);
     })
+
+    app.get("/todo", async(req,res) => {
+        const result = await todoCollection.find().toArray();
+        res.send(result);
+    });
+
+// ONGOING SECTION
+
+    app.post("/ongoing", async(req,res) => {
+        const data = req.body
+        const result= await ongoingCollection.insertOne(data);
+        res.send(result);
+      })
+  
+      app.get("/ongoing", async(req,res) => {
+        const result = await ongoingCollection.find().toArray();
+        res.send(result);
+    });
+    
+// COMPLETED SECTION
+
+app.post("/completed", async(req,res) => {
+    const data = req.body
+    const result= await completedCollection.insertOne(data);
+    res.send(result);
+  })
+
+  app.get("/completed", async(req,res) => {
+    const result = await completedCollection.find().toArray();
+    res.send(result);
+});
 
 
 
