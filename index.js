@@ -60,6 +60,33 @@ async function run() {
       res.send(result);
     });
 
+    app.get("/todo/:id", async (req, res) => {
+      const id = req.params.id
+      let query = {}
+      if (id) {
+          query = { _id: new ObjectId(id) }
+      }
+      const result = await todoCollection.findOne(query)
+      res.send(result)
+  });
+
+  app.put("/todo/:id", async (req, res) => {
+    const id = req.params.id;
+    const filter = { _id: new ObjectId(id) }
+    const options = { upsert: true };
+    const data = req.body;
+    const UpdateResult = {
+        $set: {
+           tasks: data.tasks,
+           description: data.description,
+           deadline: data.deadline,
+           
+        }
+    }
+    const result = await todoCollection.updateOne(filter, UpdateResult, options)
+    res.send(result);
+  });
+
     // ONGOING SECTION
 
     app.post("/ongoing", async (req, res) => {
@@ -84,6 +111,34 @@ async function run() {
       const result = await ongoingCollection.deleteOne(query);
       res.send(result);
     });
+
+    app.get("/ongoing/:id", async (req, res) => {
+      const id = req.params.id
+      let query = {}
+      if (id) {
+          query = { _id: new ObjectId(id) }
+      }
+      const result = await ongoingCollection.findOne(query)
+      res.send(result)
+  });
+
+
+  app.put("/ongoing/:id", async (req, res) => {
+    const id = req.params.id;
+    const filter = { _id: new ObjectId(id) }
+    const options = { upsert: true };
+    const data = req.body;
+    const UpdateResult = {
+        $set: {
+           tasks: data.tasks,
+           description: data.description,
+           deadline: data.deadline,
+           
+        }
+    }
+    const result = await ongoingCollection.updateOne(filter, UpdateResult, options)
+    res.send(result);
+  });
     
 
     // COMPLETED SECTION
