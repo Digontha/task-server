@@ -12,7 +12,7 @@ app.get('/', (req, res) => {
 })
 
 
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.jp082z4.mongodb.net/?retryWrites=true&w=majority`;
 
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
@@ -35,46 +35,103 @@ async function run() {
     const todoCollection = client.db("taskDB").collection("todo");
     const ongoingCollection = client.db("taskDB").collection("ongoing");
     const completedCollection = client.db("taskDB").collection("completed");
-// TODO SECTION
+    // TODO SECTION
 
-    app.post("/todo", async(req,res) => {
+    app.post("/todo", async (req, res) => {
       const data = req.body
-      const result= await todoCollection.insertOne(data);
+      const result = await todoCollection.insertOne(data);
       res.send(result);
     })
 
-    app.get("/todo", async(req,res) => {
-        const result = await todoCollection.find().toArray();
-        res.send(result);
+    app.get("/todo", async (req, res) => {
+      const email = req.query.email
+      let query = {}
+      if (email) {
+        query = { email: email }
+      }
+      const result = await todoCollection.find(query).toArray();
+      res.send(result);
     });
 
-// ONGOING SECTION
+    app.delete("/todo/:id", async (req, res) => {
+      const id = req.params.id
+      const query={_id : new ObjectId(id)}
+      const result = await todoCollection.deleteOne(query);
+      res.send(result);
+    });
 
-    app.post("/ongoing", async(req,res) => {
-        const data = req.body
-        const result= await ongoingCollection.insertOne(data);
-        res.send(result);
-      })
-  
-      app.get("/ongoing", async(req,res) => {
-        const result = await ongoingCollection.find().toArray();
-        res.send(result);
+    // ONGOING SECTION
+
+    app.post("/ongoing", async (req, res) => {
+      const data = req.body
+      const result = await ongoingCollection.insertOne(data);
+      res.send(result);
+    })
+
+    app.get("/ongoing", async (req, res) => {
+      const email = req.query.email
+      let query = {}
+      if (email) {
+        query = { email: email }
+      }
+      const result = await ongoingCollection.find(query).toArray();
+      res.send(result);
+    });
+
+    app.delete("/ongoing/:id", async (req, res) => {
+      const id = req.params.id
+      const query={_id : new ObjectId(id)}
+      const result = await ongoingCollection.deleteOne(query);
+      res.send(result);
     });
     
-// COMPLETED SECTION
 
-app.post("/completed", async(req,res) => {
-    const data = req.body
-    const result= await completedCollection.insertOne(data);
-    res.send(result);
-  })
+    // COMPLETED SECTION
 
-  app.get("/completed", async(req,res) => {
-    const result = await completedCollection.find().toArray();
+    app.post("/completed", async (req, res) => {
+      const data = req.body
+      const result = await completedCollection.insertOne(data);
+      res.send(result);
+    })
+
+    app.get("/completed", async (req, res) => {
+      const result = await completedCollection.find().toArray();
+      res.send(result);
+    });
+
+    app.delete("/completed/:id", async (req, res) => {
+      const id = req.params.id
+      const query={_id : new ObjectId(id)}
+      const result = await completedCollection.deleteOne(query);
+      res.send(result);
+    });
+
+    app.get("/completed/:id", async (req, res) => {
+      const id = req.params.id
+      let query = {}
+      if (id) {
+          query = { _id: new ObjectId(id) }
+      }
+      const result = await completedCollection.findOne(query)
+      res.send(result)
+  });
+
+  app.put("/completed/:id", async (req, res) => {
+    const id = req.params.id;
+    const filter = { _id: new ObjectId(id) }
+    const options = { upsert: true };
+    const data = req.body;
+    const UpdateResult = {
+        $set: {
+           tasks: data.tasks,
+           description: data.description,
+           deadline: data.deadline,
+           
+        }
+    }
+    const result = await completedCollection.updateOne(filter, UpdateResult, options)
     res.send(result);
 });
-
-
 
   } finally {
     // Ensures that the client will close when you finish/error
